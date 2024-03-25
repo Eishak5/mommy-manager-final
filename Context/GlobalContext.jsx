@@ -105,7 +105,7 @@ const GlobalProvider = ({ children }) => {
     };
     const getCurrentUser = async () => {
         try {
-            +-            dispatch(currentUserBegin())
+            dispatch(currentUserBegin())
             const snapshot = await await getDocs(query(collection(db, 'users'), where("userId", "==", state?.user?.uid)));
             snapshot.forEach((doc) => {
                 dispatch(currentUserSuccess({ id: doc.id, ...doc.data() }))
@@ -136,7 +136,6 @@ const GlobalProvider = ({ children }) => {
             const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
             const endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
             const snapshot = await getDocs(query(collection(db, 'todos'), where("userId", "==", state?.user?.uid), where("date", ">=", startOfDay), where("date", "<", endOfDay)));
-            // const snapshot = await await getDocs(query(collection(db, 'todos'), where("userId", "==", state?.user?.uid)));
             const todos = [];
             snapshot.forEach((doc) => {
                 todos.push({ id: doc.id, ...doc.data() });
@@ -151,6 +150,8 @@ const GlobalProvider = ({ children }) => {
     const getTodosbyDate = async (currentDate) => {
         try {
             dispatch(todoFilterBegin())
+            if (!currentDate)
+                currentDate = new Date()
             const startOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
             const endOfDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
             const snapshot = await getDocs(query(collection(db, 'todos'), where("userId", "==", state?.user?.uid), where("date", ">=", startOfDay), where("date", "<", endOfDay)));
@@ -186,8 +187,8 @@ const GlobalProvider = ({ children }) => {
     const deleteTodo = async (todoId) => {
         try {
             await deleteDoc(doc(db, "todos", todoId));
-            // await db.collection("todos").doc(todoId).delete();
             await getTodos()
+            await getTodosbyDate()
         } catch (error) {
             console.error("Error deleting todo: ", error);
         }
@@ -198,6 +199,7 @@ const GlobalProvider = ({ children }) => {
             dispatch(todoBegin())
             await updateDoc(doc(db, "todos", todoId), updatedTodo)
             await getTodos()
+            await getTodosbyDate()
             return true
         } catch (error) {
             console.error("Error updating todo: ", error);
